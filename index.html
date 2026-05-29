@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatterbox Batch TTS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0e0f; --bg2: #161618; --bg3: #1e1e21;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0eff0; --text2: #9b9aa0; --text3: #5c5b62;
+    --accent: #c8f542; --warn: #f5a623; --danger: #f54242; --success: #42d98a;
+    --radius: 10px; --radius-lg: 14px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+  .page { max-width: 880px; margin: 0 auto; }
+
+  header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 0.5px solid var(--border); }
+  .logo { width: 44px; height: 44px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .logo svg { width: 22px; height: 22px; }
+  header h1 { font-size: 22px; font-weight: 500; letter-spacing: -0.3px; margin-bottom: 4px; }
+  header p { font-size: 14px; color: var(--text2); font-weight: 300; line-height: 1.5; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+  .full { grid-column: 1 / -1; }
+  .card-title { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; background: var(--bg3); border: 0.5px solid var(--border);
+    border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; padding: 9px 12px; outline: none; transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--border2); }
+  select { cursor: pointer; } select option { background: #1e1e21; }
+  textarea { min-height: 160px; resize: vertical; line-height: 1.6; }
+
+  .video-num-wrap { position: relative; }
+  .video-num-wrap input { font-size: 18px; font-weight: 500; padding: 12px 16px; letter-spacing: 0.5px; }
+  .video-num-preview { font-size: 12px; color: var(--text3); margin-top: 6px; font-family: 'DM Mono', monospace; }
+  .video-num-preview span { color: var(--accent); }
+
+  .char-bar-wrap { height: 3px; background: var(--bg3); border-radius: 99px; margin-top: 6px; overflow: hidden; }
+  .char-bar { height: 100%; background: var(--accent); border-radius: 99px; width: 0%; transition: width 0.2s, background 0.2s; }
+  .char-bar.warn { background: var(--warn); }
+  .char-bar.over { background: var(--danger); }
+  .meta-row { display: flex; justify-content: space-between; margin-top: 6px; }
+  .meta { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .meta span { color: var(--text2); }
+
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+  input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; background: var(--bg3); border-radius: 99px; outline: none; border: 0.5px solid var(--border); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
+  .sval { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); min-width: 42px; text-align: right; }
+
+  .audio-zone { border: 0.5px dashed var(--border2); border-radius: var(--radius); padding: 20px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; }
+  .audio-zone:hover { border-color: var(--accent); background: rgba(200,245,66,0.04); }
+  .audio-zone.has-file { border-style: solid; border-color: rgba(200,245,66,0.4); background: rgba(200,245,66,0.05); }
+  .audio-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .audio-zone-icon { font-size: 24px; margin-bottom: 6px; }
+  .audio-zone-text { font-size: 13px; color: var(--text2); }
+  .audio-zone-name { font-size: 12px; color: var(--accent); margin-top: 4px; font-family: 'DM Mono', monospace; display: none; }
+  .audio-zone.has-file .audio-zone-name { display: block; }
+  .audio-zone.has-file .audio-zone-text { display: none; }
+  .audio-clear { position: absolute; top: 8px; right: 8px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; color: var(--text2); font-size: 12px; padding: 2px 8px; cursor: pointer; display: none; z-index: 2; }
+  .audio-zone.has-file .audio-clear { display: block; }
+
+  .btn-row { display: flex; gap: 10px; margin: 1.5rem 0; flex-wrap: wrap; }
+  .btn-primary { background: var(--accent); color: #0e0e0f; border: none; border-radius: var(--radius); padding: 11px 22px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity 0.15s, transform 0.1s; }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .btn-sec { background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 11px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s, color 0.15s; }
+  .btn-sec:hover { background: var(--bg3); color: var(--text); }
+  .btn-sec:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-family: 'DM Mono', monospace; }
+  .tag-ok { background: rgba(66,217,138,0.12); color: var(--success); }
+  .tag-warn { background: rgba(245,166,35,0.12); color: var(--warn); }
+
+  .progress-area { display: none; margin-bottom: 16px; }
+  .progress-area.visible { display: block; }
+  .pbar-track { background: var(--bg3); border-radius: 99px; height: 5px; overflow: hidden; margin-bottom: 8px; }
+  .pbar-fill { height: 100%; background: var(--accent); border-radius: 99px; width: 0%; transition: width 0.35s ease; }
+  .pstatus { font-size: 13px; color: var(--text2); font-family: 'DM Mono', monospace; }
+
+  .chunks-area { display: none; }
+  .chunks-area.visible { display: block; }
+  .chunks-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .chunks-title { font-size: 12px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .chunk-list { display: flex; flex-direction: column; gap: 6px; max-height: 400px; overflow-y: auto; padding-right: 4px; }
+  .chunk-list::-webkit-scrollbar { width: 4px; }
+  .chunk-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+  .chunk-item { display: flex; align-items: center; gap: 8px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 9px 12px; transition: border-color 0.2s; }
+  .chunk-item.processing { border-color: rgba(245,166,35,0.4); }
+  .chunk-item.done { border-color: rgba(66,217,138,0.3); }
+  .chunk-item.error { border-color: rgba(245,66,66,0.3); }
+  .chunk-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); min-width: 28px; }
+  .chunk-fname { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); min-width: 48px; }
+  .chunk-text { font-size: 13px; color: var(--text2); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chunk-chars { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); min-width: 52px; text-align: right; }
+  .chunk-status { font-size: 12px; min-width: 80px; text-align: right; font-family: 'DM Mono', monospace; }
+  .chunk-status.pending { color: var(--text3); }
+  .chunk-status.processing { color: var(--warn); }
+  .chunk-status.done { color: var(--success); }
+  .chunk-status.error { color: var(--danger); }
+
+  .chunk-btn { background: transparent; border: 0.5px solid var(--border2); border-radius: 6px; padding: 4px 9px; font-size: 12px; color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.12s; white-space: nowrap; }
+  .chunk-btn:hover { background: var(--bg3); color: var(--text); }
+  .chunk-btn.retry { border-color: rgba(245,66,66,0.4); color: var(--danger); display: none; }
+  .chunk-btn.retry.visible { display: inline-block; }
+  .chunk-btn.retry:hover { background: rgba(245,66,66,0.1); }
+  .chunk-btn.dl { display: none; }
+  .chunk-btn.dl.visible { display: inline-block; }
+
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #0e0e0f; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+  .spinner.visible { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } .full { grid-column: 1; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 22 22" fill="none"><path d="M3 11 Q5 6 8 11 Q11 16 14 11 Q17 6 19 11" stroke="#0e0e0f" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+    </div>
+    <div>
+      <h1>Chatterbox Batch TTS</h1>
+      <p>Pegá tu guion completo, configurá la voz y generá todos los audios de una sola vez.<br>Usa la API oficial de Chatterbox en Hugging Face — no necesitás instalar nada.</p>
+    </div>
+  </header>
+
+  <!-- Número de video -->
+  <div class="card full" style="margin-bottom:12px">
+    <div class="card-title">Identificador del video</div>
+    <div class="field">
+      <label for="video-num">Número o nombre del video</label>
+      <div class="video-num-wrap">
+        <input type="text" id="video-num" placeholder="ej: 1, 2, intro, capitulo3..." oninput="updatePreview()" maxlength="40">
+      </div>
+      <p class="video-num-preview" id="fname-preview">Los archivos se llamarán <span>?.1.wav</span>, <span>?.2.wav</span>, <span>?.3.wav</span>…</p>
+    </div>
+  </div>
+
+  <div class="grid2">
+
+    <!-- Texto -->
+    <div class="card full">
+      <div class="card-title">Texto del guion</div>
+      <div class="field">
+        <textarea id="script-text" placeholder="Pegá aquí tu guion completo..." oninput="updateStats()"></textarea>
+        <div class="char-bar-wrap"><div class="char-bar" id="char-bar"></div></div>
+        <div class="meta-row">
+          <span class="meta"><span id="char-count">0</span> caracteres totales</span>
+          <span class="meta"><span id="chunk-preview">0</span> fragmentos · <span id="char-per">280</span> chars/frag máx</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voz de referencia -->
+    <div class="card">
+      <div class="card-title">Voz de referencia <span class="tag tag-ok" style="margin-left:6px">opcional</span></div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5">Subí un audio corto (5–30 seg) con la voz que querés imitar. Chatterbox copiará el estilo y tono.</p>
+      <div class="audio-zone" id="audio-zone" onclick="handleZoneClick(event)">
+        <input type="file" id="ref-audio" accept="audio/*" onchange="handleAudioFile(this)">
+        <div class="audio-zone-icon">🎙️</div>
+        <div class="audio-zone-text">Hacé click o arrastrá un archivo de audio</div>
+        <div class="audio-zone-name" id="audio-name">—</div>
+        <button class="audio-clear" onclick="clearAudio(event)">✕ quitar</button>
+      </div>
+    </div>
+
+    <!-- División -->
+    <div class="card">
+      <div class="card-title">División del texto</div>
+      <div class="field">
+        <label>Caracteres por fragmento (máx. 300)</label>
+        <div class="slider-row">
+          <input type="range" id="chunk-size" min="100" max="300" step="10" value="280" oninput="document.getElementById('cs-val').textContent=this.value; updateStats()">
+          <span class="sval" id="cs-val">280</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="split-mode">Modo de corte</label>
+        <select id="split-mode" onchange="updateStats()">
+          <option value="sentence">Por oración completa (recomendado)</option>
+          <option value="word">Por palabra</option>
+          <option value="char">Por caracteres exactos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Pausa entre requests (ms) <span class="tag tag-warn" style="margin-left:4px">evita errores</span></label>
+        <div class="slider-row">
+          <input type="range" id="delay" min="500" max="8000" step="250" value="3000" oninput="document.getElementById('delay-val').textContent=this.value">
+          <span class="sval" id="delay-val">3000</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Reintentos automáticos por fragmento</label>
+        <div class="slider-row">
+          <input type="range" id="retries" min="1" max="5" step="1" value="3" oninput="document.getElementById('retry-val').textContent=this.value">
+          <span class="sval" id="retry-val">3</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Parámetros de voz -->
+    <div class="card full">
+      <div class="card-title">Parámetros de voz</div>
+      <div class="grid2" style="margin-bottom:0;gap:24px">
+        <div>
+          <div class="field">
+            <label>Exaggeration — emoción / expresividad <span style="color:var(--text3)">(neutro = 0.5)</span></label>
+            <div class="slider-row">
+              <input type="range" id="exaggeration" min="0.25" max="2" step="0.05" value="0.5" oninput="document.getElementById('exag-val').textContent=parseFloat(this.value).toFixed(2)">
+              <span class="sval" id="exag-val">0.50</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>CFG / Pace — velocidad y ritmo</label>
+            <div class="slider-row">
+              <input type="range" id="cfgw" min="0.2" max="1" step="0.05" value="0.5" oninput="document.getElementById('cfg-val').textContent=parseFloat(this.value).toFixed(2)">
+              <span class="sval" id="cfg-val">0.50</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="field">
+            <label>Temperature — variación aleatoria de la voz</label>
+            <div class="slider-row">
+              <input type="range" id="temperature" min="0.05" max="5" step="0.05" value="0.8" oninput="document.getElementById('temp-val').textContent=parseFloat(this.value).toFixed(2)">
+              <span class="sval" id="temp-val">0.80</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Seed — semilla aleatoria <span style="color:var(--text3)">(0 = aleatorio)</span></label>
+            <div class="slider-row">
+              <input type="range" id="seed" min="0" max="9999" step="1" value="0" oninput="document.getElementById('seed-val').textContent=this.value">
+              <span class="sval" id="seed-val">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-primary" id="run-btn" onclick="startBatch()">
+      <div class="spinner" id="run-spinner"></div>
+      <svg id="run-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 3l8 5-8 5V3z" fill="currentColor"/></svg>
+      Generar todos los audios
+    </button>
+    <button class="btn-sec" onclick="previewChunks()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1 7.5C1 7.5 3.5 3 7.5 3S14 7.5 14 7.5 11.5 12 7.5 12 1 7.5 1 7.5Z" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+      Ver fragmentos
+    </button>
+    <button class="btn-sec" id="dl-all-btn" onclick="downloadAll()" style="display:none">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 2v8M4 7l3.5 3.5L11 7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M2 13h11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Descargar todos
+    </button>
+  </div>
+
+  <div class="progress-area" id="progress-area">
+    <div class="pbar-track"><div class="pbar-fill" id="pbar"></div></div>
+    <p class="pstatus" id="pstatus">Iniciando...</p>
+  </div>
+
+  <div class="chunks-area" id="chunks-area">
+    <div class="chunks-header">
+      <span class="chunks-title">Fragmentos</span>
+      <span class="meta" id="chunks-summary"></span>
+    </div>
+    <div class="chunk-list" id="chunk-list"></div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+  let chunks = [];
+  let audioBlobs = [];
+  let isRunning = false;
+  let refAudioFile = null;
+  let gradioClient = null;
+
+  // ---- nombre de archivo ----
+  function getVideoNum() {
+    return document.getElementById('video-num').value.trim() || '?';
+  }
+  function getFileName(i) {
+    return getVideoNum() + '.' + (i + 1) + '.wav';
+  }
+
+  window.updatePreview = function() {
+    const v = getVideoNum();
+    document.getElementById('fname-preview').innerHTML =
+      `Los archivos se llamarán <span>${v}.1.wav</span>, <span>${v}.2.wav</span>, <span>${v}.3.wav</span>…`;
+    // actualizar nombres en la lista si ya existe
+    chunks.forEach((_, i) => {
+      const el = document.getElementById('cfn-' + i);
+      if (el) el.textContent = getVideoNum() + '.' + (i+1);
+    });
+  };
+
+  // ---- audio de referencia ----
+  window.handleZoneClick = function(e) {
+    if (e.target.classList.contains('audio-clear') || e.target.closest('.audio-clear')) return;
+  };
+  window.handleAudioFile = function(input) {
+    if (!input.files || !input.files[0]) return;
+    refAudioFile = input.files[0];
+    document.getElementById('audio-zone').classList.add('has-file');
+    document.getElementById('audio-name').textContent = refAudioFile.name;
+  };
+  window.clearAudio = function(e) {
+    e.preventDefault(); e.stopPropagation();
+    refAudioFile = null;
+    document.getElementById('ref-audio').value = '';
+    document.getElementById('audio-zone').classList.remove('has-file');
+    document.getElementById('audio-name').textContent = '—';
+  };
+
+  // ---- stats ----
+  window.updateStats = function() {
+    const text = document.getElementById('script-text').value;
+    const size = parseInt(document.getElementById('chunk-size').value);
+    const mode = document.getElementById('split-mode').value;
+    const est = text.trim() ? splitText(text, size, mode).length : 0;
+    document.getElementById('char-count').textContent = text.length.toLocaleString('es');
+    document.getElementById('chunk-preview').textContent = est;
+    document.getElementById('char-per').textContent = size;
+    const pct = est > 0 ? Math.min(100, (text.length / (est * size)) * 100) : 0;
+    const bar = document.getElementById('char-bar');
+    bar.style.width = pct + '%';
+    bar.className = 'char-bar' + (pct > 90 ? ' over' : pct > 70 ? ' warn' : '');
+  };
+
+  // ---- split ----
+  function splitText(text, maxChars, mode) {
+    text = text.trim();
+    if (!text) return [];
+    if (mode === 'char') {
+      const r = [];
+      for (let i = 0; i < text.length; i += maxChars) r.push(text.slice(i, i + maxChars));
+      return r;
+    }
+    if (mode === 'word') {
+      const words = text.split(/\s+/);
+      const r = []; let cur = '';
+      for (const w of words) {
+        const next = cur ? cur + ' ' + w : w;
+        if (next.length > maxChars && cur) { r.push(cur); cur = w; } else cur = next;
+      }
+      if (cur) r.push(cur);
+      return r;
+    }
+    // sentence
+    const sentences = text.match(/[^.!?…\n]+[.!?…\n]*/g) || [text];
+    const r = []; let cur = '';
+    for (const s of sentences) {
+      if (s.length > maxChars) {
+        if (cur) { r.push(cur.trim()); cur = ''; }
+        const words = s.split(/\s+/); let sub = '';
+        for (const w of words) {
+          const next = sub ? sub + ' ' + w : w;
+          if (next.length > maxChars && sub) { r.push(sub); sub = w; } else sub = next;
+        }
+        if (sub) cur = sub;
+      } else {
+        const combined = cur + s;
+        if (combined.length > maxChars && cur) { r.push(cur.trim()); cur = s; } else cur = combined;
+      }
+    }
+    if (cur.trim()) r.push(cur.trim());
+    return r;
+  }
+
+  // ---- preview ----
+  window.previewChunks = function() {
+    const text = document.getElementById('script-text').value;
+    if (!text.trim()) { alert('Pegá el texto del guion primero.'); return; }
+    const size = parseInt(document.getElementById('chunk-size').value);
+    const mode = document.getElementById('split-mode').value;
+    chunks = splitText(text, size, mode);
+    audioBlobs = new Array(chunks.length).fill(null);
+    renderList();
+  };
+
+  function renderList() {
+    const area = document.getElementById('chunks-area');
+    const list = document.getElementById('chunk-list');
+    area.classList.add('visible');
+    document.getElementById('chunks-summary').textContent = chunks.length + ' fragmentos';
+    list.innerHTML = chunks.map((c, i) => `
+      <div class="chunk-item" id="ci-${i}">
+        <span class="chunk-num">#${String(i+1).padStart(3,'0')}</span>
+        <span class="chunk-fname" id="cfn-${i}">${getVideoNum()}.${i+1}</span>
+        <span class="chunk-text">${esc(c.substring(0,65))}${c.length>65?'…':''}</span>
+        <span class="chunk-chars">${c.length} ch</span>
+        <span class="chunk-status pending" id="cs-${i}">pendiente</span>
+        <button class="chunk-btn dl" id="cd-${i}" onclick="window.dlSingle(${i})">↓ wav</button>
+        <button class="chunk-btn retry" id="cr-${i}" onclick="window.retrySingle(${i})">↺ reintentar</button>
+      </div>`).join('');
+  }
+
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ---- conexión con cliente compartido ----
+  async function getClient() {
+    if (!gradioClient) {
+      gradioClient = await Client.connect("ResembleAI/Chatterbox");
+    }
+    return gradioClient;
+  }
+
+  // ---- generar un fragmento con reintentos ----
+  async function generateChunk(index, maxRetries) {
+    const exaggeration = parseFloat(document.getElementById('exaggeration').value);
+    const temperature = parseFloat(document.getElementById('temperature').value);
+    const seed = parseFloat(document.getElementById('seed').value);
+    const cfgw = parseFloat(document.getElementById('cfgw').value);
+    const delay = parseInt(document.getElementById('delay').value);
+
+    const client = await getClient();
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        if (attempt > 1) {
+          setStatus(index, 'processing', `reintento ${attempt}/${maxRetries}…`);
+          await sleep(delay * attempt); // pausa más larga en cada reintento
+        }
+        const params = {
+          text_input: chunks[index],
+          audio_prompt_path_input: refAudioFile || null,
+          exaggeration_input: exaggeration,
+          temperature_input: temperature,
+          seed_num_input: seed,
+          cfgw_input: cfgw,
+          vad_trim_input: false
+        };
+        const result = await client.predict("/generate_tts_audio", params);
+        const audioUrl = result.data[0]?.url || result.data[0];
+        const resp = await fetch(audioUrl);
+        if (!resp.ok) throw new Error('fetch audio failed');
+        const blob = await resp.blob();
+        audioBlobs[index] = blob;
+        return true; // éxito
+      } catch(e) {
+        console.warn(`Fragmento ${index+1} intento ${attempt} falló:`, e.message);
+        if (attempt === maxRetries) return false; // agotó reintentos
+      }
+    }
+    return false;
+  }
+
+  // ---- batch principal ----
+  window.startBatch = async function() {
+    if (isRunning) return;
+    const text = document.getElementById('script-text').value;
+    if (!text.trim()) { alert('Pegá el texto del guion primero.'); return; }
+
+    const size = parseInt(document.getElementById('chunk-size').value);
+    const mode = document.getElementById('split-mode').value;
+    const maxRetries = parseInt(document.getElementById('retries').value);
+    const delay = parseInt(document.getElementById('delay').value);
+
+    chunks = splitText(text, size, mode);
+    audioBlobs = new Array(chunks.length).fill(null);
+    renderList();
+
+    isRunning = true;
+    const runBtn = document.getElementById('run-btn');
+    runBtn.disabled = true;
+    document.getElementById('run-spinner').classList.add('visible');
+    document.getElementById('run-icon').style.display = 'none';
+    document.getElementById('progress-area').classList.add('visible');
+    document.getElementById('dl-all-btn').style.display = 'none';
+
+    updateProgress(0, chunks.length, 'Conectando con Chatterbox…');
+    try { await getClient(); } catch(e) {
+      updateProgress(0, chunks.length, '✗ No se pudo conectar. Revisá tu conexión a internet.');
+      isRunning = false; runBtn.disabled = false;
+      document.getElementById('run-spinner').classList.remove('visible');
+      document.getElementById('run-icon').style.display = '';
+      return;
+    }
+
+    let doneCount = 0;
+    for (let i = 0; i < chunks.length; i++) {
+      setStatus(i, 'processing', 'generando…');
+      updateProgress(i, chunks.length, `Fragmento ${i+1} de ${chunks.length}…`);
+
+      const ok = await generateChunk(i, maxRetries);
+      if (ok) {
+        setStatus(i, 'done', '✓ listo');
+        document.getElementById('cd-' + i).classList.add('visible');
+        document.getElementById('cr-' + i).classList.remove('visible');
+        doneCount++;
+      } else {
+        setStatus(i, 'error', '✗ error');
+        document.getElementById('cr-' + i).classList.add('visible');
+        document.getElementById('cd-' + i).classList.remove('visible');
+      }
+
+      if (i < chunks.length - 1) await sleep(delay);
+    }
+
+    updateProgress(chunks.length, chunks.length,
+      `Listo — ${doneCount} de ${chunks.length} audios generados.`);
+    isRunning = false;
+    runBtn.disabled = false;
+    document.getElementById('run-spinner').classList.remove('visible');
+    document.getElementById('run-icon').style.display = '';
+    if (doneCount > 0) document.getElementById('dl-all-btn').style.display = '';
+  };
+
+  // ---- reintento individual ----
+  window.retrySingle = async function(i) {
+    if (isRunning) return;
+    const maxRetries = parseInt(document.getElementById('retries').value);
+    const btn = document.getElementById('cr-' + i);
+    btn.disabled = true;
+    btn.textContent = 'reintentando…';
+    setStatus(i, 'processing', 'reintentando…');
+
+    try { await getClient(); } catch(e) {
+      setStatus(i, 'error', '✗ sin conexión');
+      btn.disabled = false; btn.textContent = '↺ reintentar';
+      return;
+    }
+
+    const ok = await generateChunk(i, maxRetries);
+    if (ok) {
+      setStatus(i, 'done', '✓ listo');
+      document.getElementById('cd-' + i).classList.add('visible');
+      btn.classList.remove('visible');
+      // mostrar dl-all si hay al menos uno listo
+      if (audioBlobs.some(b => b)) document.getElementById('dl-all-btn').style.display = '';
+    } else {
+      setStatus(i, 'error', '✗ error');
+      btn.disabled = false;
+      btn.textContent = '↺ reintentar';
+    }
+  };
+
+  // ---- helpers ----
+  function setStatus(i, cls, text) {
+    const item = document.getElementById('ci-' + i);
+    const status = document.getElementById('cs-' + i);
+    if (!item || !status) return;
+    item.className = 'chunk-item ' + cls;
+    status.className = 'chunk-status ' + cls;
+    status.textContent = text;
+  }
+
+  function updateProgress(done, total, msg) {
+    const pct = total > 0 ? Math.round(done / total * 100) : 0;
+    document.getElementById('pbar').style.width = pct + '%';
+    document.getElementById('pstatus').textContent = msg;
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  window.dlSingle = function(i) {
+    if (!audioBlobs[i]) return;
+    const url = URL.createObjectURL(audioBlobs[i]);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = getFileName(i);
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  window.downloadAll = function() {
+    audioBlobs.forEach((b, i) => { if (b) setTimeout(() => window.dlSingle(i), i * 300); });
+  };
+</script>
+</body>
+</html>
