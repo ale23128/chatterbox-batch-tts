@@ -33,7 +33,7 @@
   .field:last-child { margin-bottom: 0; }
   label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
 
-  input[type=text], input[type=number], select, textarea {
+  input[type=text], select, textarea {
     width: 100%; background: var(--bg3); border: 0.5px solid var(--border);
     border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif;
     font-size: 14px; padding: 9px 12px; outline: none; transition: border-color 0.15s;
@@ -42,10 +42,8 @@
   select { cursor: pointer; } select option { background: #1e1e21; }
   textarea { min-height: 160px; resize: vertical; line-height: 1.6; }
 
-  .video-num-wrap { position: relative; }
-  .video-num-wrap input { font-size: 18px; font-weight: 500; padding: 12px 16px; letter-spacing: 0.5px; }
-  .video-num-preview { font-size: 12px; color: var(--text3); margin-top: 6px; font-family: 'DM Mono', monospace; }
-  .video-num-preview span { color: var(--accent); }
+  .fname-preview { font-size: 12px; color: var(--text3); margin-top: 6px; font-family: 'DM Mono', monospace; }
+  .fname-preview span { color: var(--accent); }
 
   .char-bar-wrap { height: 3px; background: var(--bg3); border-radius: 99px; margin-top: 6px; overflow: hidden; }
   .char-bar { height: 100%; background: var(--accent); border-radius: 99px; width: 0%; transition: width 0.2s, background 0.2s; }
@@ -72,11 +70,14 @@
   .audio-clear { position: absolute; top: 8px; right: 8px; background: var(--bg3); border: 0.5px solid var(--border2); border-radius: 6px; color: var(--text2); font-size: 12px; padding: 2px 8px; cursor: pointer; display: none; z-index: 2; }
   .audio-zone.has-file .audio-clear { display: block; }
 
-  .btn-row { display: flex; gap: 10px; margin: 1.5rem 0; flex-wrap: wrap; }
+  .btn-row { display: flex; gap: 10px; margin: 1.5rem 0; flex-wrap: wrap; align-items: center; }
   .btn-primary { background: var(--accent); color: #0e0e0f; border: none; border-radius: var(--radius); padding: 11px 22px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity 0.15s, transform 0.1s; }
   .btn-primary:hover { opacity: 0.88; }
   .btn-primary:active { transform: scale(0.98); }
   .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .btn-stop { background: transparent; border: 0.5px solid var(--danger); border-radius: var(--radius); padding: 11px 18px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--danger); cursor: pointer; display: none; align-items: center; gap: 6px; transition: background 0.15s; }
+  .btn-stop:hover { background: rgba(245,66,66,0.1); }
+  .btn-stop.visible { display: flex; }
   .btn-sec { background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 11px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s, color 0.15s; }
   .btn-sec:hover { background: var(--bg3); color: var(--text); }
   .btn-sec:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -103,25 +104,28 @@
   .chunk-item.processing { border-color: rgba(245,166,35,0.4); }
   .chunk-item.done { border-color: rgba(66,217,138,0.3); }
   .chunk-item.error { border-color: rgba(245,66,66,0.3); }
-  .chunk-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); min-width: 28px; }
-  .chunk-fname { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); min-width: 48px; }
-  .chunk-text { font-size: 13px; color: var(--text2); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chunk-chars { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); min-width: 52px; text-align: right; }
-  .chunk-status { font-size: 12px; min-width: 80px; text-align: right; font-family: 'DM Mono', monospace; }
+  .chunk-item.stopped { border-color: rgba(255,255,255,0.1); }
+  .chunk-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); min-width: 28px; flex-shrink: 0; }
+  .chunk-fname { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); min-width: 0; flex-shrink: 0; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chunk-text { font-size: 13px; color: var(--text2); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .chunk-chars { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); min-width: 46px; text-align: right; flex-shrink: 0; }
+  .chunk-status { font-size: 12px; min-width: 72px; text-align: right; font-family: 'DM Mono', monospace; flex-shrink: 0; }
   .chunk-status.pending { color: var(--text3); }
   .chunk-status.processing { color: var(--warn); }
   .chunk-status.done { color: var(--success); }
   .chunk-status.error { color: var(--danger); }
+  .chunk-status.stopped { color: var(--text3); }
 
-  .chunk-btn { background: transparent; border: 0.5px solid var(--border2); border-radius: 6px; padding: 4px 9px; font-size: 12px; color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.12s; white-space: nowrap; }
+  .chunk-btn { background: transparent; border: 0.5px solid var(--border2); border-radius: 6px; padding: 4px 9px; font-size: 12px; color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.12s; white-space: nowrap; flex-shrink: 0; }
   .chunk-btn:hover { background: var(--bg3); color: var(--text); }
+  .chunk-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .chunk-btn.retry { border-color: rgba(245,66,66,0.4); color: var(--danger); display: none; }
   .chunk-btn.retry.visible { display: inline-block; }
   .chunk-btn.retry:hover { background: rgba(245,66,66,0.1); }
   .chunk-btn.dl { display: none; }
   .chunk-btn.dl.visible { display: inline-block; }
 
-  .spinner { width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #0e0e0f; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #0e0e0f; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; flex-shrink: 0; }
   .spinner.visible { display: inline-block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -141,15 +145,13 @@
     </div>
   </header>
 
-  <!-- Número de video -->
+  <!-- Identificador -->
   <div class="card full" style="margin-bottom:12px">
     <div class="card-title">Identificador del video</div>
     <div class="field">
-      <label for="video-num">Número o nombre del video</label>
-      <div class="video-num-wrap">
-        <input type="text" id="video-num" placeholder="ej: 1, 2, intro, capitulo3..." oninput="updatePreview()" maxlength="40">
-      </div>
-      <p class="video-num-preview" id="fname-preview">Los archivos se llamarán <span>?.1.wav</span>, <span>?.2.wav</span>, <span>?.3.wav</span>…</p>
+      <label for="video-num">Nombre o número del video (puede tener letras, números y espacios)</label>
+      <input type="text" id="video-num" placeholder="ej: 1 chatter, intro, capitulo3, video final..." oninput="updatePreview()" maxlength="60">
+      <p class="fname-preview" id="fname-preview">Los archivos se llamarán <span>?.1.wav</span>, <span>?.2.wav</span>, <span>?.3.wav</span>…</p>
     </div>
   </div>
 
@@ -262,6 +264,10 @@
       <svg id="run-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 3l8 5-8 5V3z" fill="currentColor"/></svg>
       Generar todos los audios
     </button>
+    <button class="btn-stop" id="stop-btn" onclick="stopBatch()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" fill="currentColor"/></svg>
+      Detener
+    </button>
     <button class="btn-sec" onclick="previewChunks()">
       <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1 7.5C1 7.5 3.5 3 7.5 3S14 7.5 14 7.5 11.5 12 7.5 12 1 7.5 1 7.5Z" stroke="currentColor" stroke-width="1.2" fill="none"/><circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
       Ver fragmentos
@@ -287,66 +293,68 @@
 
 </div>
 
-<script type="module">
-  import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+<script>
+  const API_URL = "https://resembleai-chatterbox.hf.space/gradio_api/call/generate_tts_audio";
 
   let chunks = [];
   let audioBlobs = [];
   let isRunning = false;
+  let shouldStop = false;
   let refAudioFile = null;
-  let gradioClient = null;
+  let refAudioUrl = null; // URL del audio subido a Gradio
 
   // ---- nombre de archivo ----
-  function getVideoNum() {
+  function getVideoId() {
     return document.getElementById('video-num').value.trim() || '?';
   }
   function getFileName(i) {
-    return getVideoNum() + '.' + (i + 1) + '.wav';
+    return getVideoId() + '.' + (i + 1) + '.wav';
   }
 
-  window.updatePreview = function() {
-    const v = getVideoNum();
+  function updatePreview() {
+    const v = getVideoId();
     document.getElementById('fname-preview').innerHTML =
       `Los archivos se llamarán <span>${v}.1.wav</span>, <span>${v}.2.wav</span>, <span>${v}.3.wav</span>…`;
-    // actualizar nombres en la lista si ya existe
     chunks.forEach((_, i) => {
       const el = document.getElementById('cfn-' + i);
-      if (el) el.textContent = getVideoNum() + '.' + (i+1);
+      if (el) el.textContent = getVideoId() + '.' + (i + 1);
     });
-  };
+  }
 
   // ---- audio de referencia ----
-  window.handleZoneClick = function(e) {
+  function handleZoneClick(e) {
     if (e.target.classList.contains('audio-clear') || e.target.closest('.audio-clear')) return;
-  };
-  window.handleAudioFile = function(input) {
+  }
+  function handleAudioFile(input) {
     if (!input.files || !input.files[0]) return;
     refAudioFile = input.files[0];
+    refAudioUrl = null; // resetear URL previa
     document.getElementById('audio-zone').classList.add('has-file');
     document.getElementById('audio-name').textContent = refAudioFile.name;
-  };
-  window.clearAudio = function(e) {
+  }
+  function clearAudio(e) {
     e.preventDefault(); e.stopPropagation();
-    refAudioFile = null;
+    refAudioFile = null; refAudioUrl = null;
     document.getElementById('ref-audio').value = '';
     document.getElementById('audio-zone').classList.remove('has-file');
     document.getElementById('audio-name').textContent = '—';
-  };
+  }
 
   // ---- stats ----
-  window.updateStats = function() {
+  function updateStats() {
     const text = document.getElementById('script-text').value;
     const size = parseInt(document.getElementById('chunk-size').value);
     const mode = document.getElementById('split-mode').value;
-    const est = text.trim() ? splitText(text, size, mode).length : 0;
+    const segs = text.trim() ? splitText(text, size, mode) : [];
     document.getElementById('char-count').textContent = text.length.toLocaleString('es');
-    document.getElementById('chunk-preview').textContent = est;
+    document.getElementById('chunk-preview').textContent = segs.length;
     document.getElementById('char-per').textContent = size;
-    const pct = est > 0 ? Math.min(100, (text.length / (est * size)) * 100) : 0;
+    const maxTotal = segs.length * size;
+    const pct = maxTotal > 0 ? Math.min(100, (text.length / maxTotal) * 100) : 0;
     const bar = document.getElementById('char-bar');
     bar.style.width = pct + '%';
     bar.className = 'char-bar' + (pct > 90 ? ' over' : pct > 70 ? ' warn' : '');
-  };
+  }
 
   // ---- split ----
   function splitText(text, maxChars, mode) {
@@ -389,7 +397,7 @@
   }
 
   // ---- preview ----
-  window.previewChunks = function() {
+  function previewChunks() {
     const text = document.getElementById('script-text').value;
     if (!text.trim()) { alert('Pegá el texto del guion primero.'); return; }
     const size = parseInt(document.getElementById('chunk-size').value);
@@ -397,7 +405,7 @@
     chunks = splitText(text, size, mode);
     audioBlobs = new Array(chunks.length).fill(null);
     renderList();
-  };
+  }
 
   function renderList() {
     const area = document.getElementById('chunks-area');
@@ -407,67 +415,122 @@
     list.innerHTML = chunks.map((c, i) => `
       <div class="chunk-item" id="ci-${i}">
         <span class="chunk-num">#${String(i+1).padStart(3,'0')}</span>
-        <span class="chunk-fname" id="cfn-${i}">${getVideoNum()}.${i+1}</span>
-        <span class="chunk-text">${esc(c.substring(0,65))}${c.length>65?'…':''}</span>
+        <span class="chunk-fname" id="cfn-${i}">${esc(getVideoId())}.${i+1}</span>
+        <span class="chunk-text">${esc(c.substring(0,60))}${c.length>60?'…':''}</span>
         <span class="chunk-chars">${c.length} ch</span>
         <span class="chunk-status pending" id="cs-${i}">pendiente</span>
-        <button class="chunk-btn dl" id="cd-${i}" onclick="window.dlSingle(${i})">↓ wav</button>
-        <button class="chunk-btn retry" id="cr-${i}" onclick="window.retrySingle(${i})">↺ reintentar</button>
+        <button class="chunk-btn dl" id="cd-${i}" onclick="dlSingle(${i})">↓ wav</button>
+        <button class="chunk-btn retry" id="cr-${i}" onclick="retrySingle(${i})">↺ reintentar</button>
       </div>`).join('');
   }
 
-  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
 
-  // ---- conexión con cliente compartido ----
-  async function getClient() {
-    if (!gradioClient) {
-      gradioClient = await Client.connect("ResembleAI/Chatterbox");
+  // ---- subir audio de referencia a Gradio (una sola vez) ----
+  async function uploadRefAudio() {
+    if (!refAudioFile) return null;
+    if (refAudioUrl) return refAudioUrl; // ya subido
+    const fd = new FormData();
+    fd.append('files', refAudioFile);
+    const res = await fetch('https://resembleai-chatterbox.hf.space/gradio_api/upload', {
+      method: 'POST', body: fd
+    });
+    if (!res.ok) throw new Error('No se pudo subir el audio de referencia');
+    const data = await res.json();
+    refAudioUrl = data[0]; // path en el servidor de Gradio
+    return refAudioUrl;
+  }
+
+  // ---- llamada a la API de Gradio via fetch puro ----
+  async function callGradio(text, audioPath) {
+    const payload = {
+      data: [
+        text,
+        audioPath ? { path: audioPath, meta: { _type: "gradio.FileData" } } : null,
+        parseFloat(document.getElementById('exaggeration').value),
+        parseFloat(document.getElementById('temperature').value),
+        parseFloat(document.getElementById('seed').value),
+        parseFloat(document.getElementById('cfgw').value),
+        false
+      ]
+    };
+
+    // POST para obtener event_id
+    const postRes = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!postRes.ok) throw new Error('POST falló: ' + postRes.status);
+    const postData = await postRes.json();
+    const eventId = postData.event_id;
+    if (!eventId) throw new Error('No se recibió event_id');
+
+    // GET para obtener el resultado (polling con SSE)
+    const getRes = await fetch(API_URL + '/' + eventId);
+    if (!getRes.ok) throw new Error('GET falló: ' + getRes.status);
+    const text2 = await getRes.text();
+
+    // parsear SSE — buscar la línea "data: [...]"
+    const lines = text2.split('\n');
+    let resultData = null;
+    for (const line of lines) {
+      if (line.startsWith('data:')) {
+        try {
+          const parsed = JSON.parse(line.slice(5).trim());
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            resultData = parsed[0];
+          }
+        } catch(e) { /* seguir */ }
+      }
     }
-    return gradioClient;
+    if (!resultData) throw new Error('Respuesta vacía de la API');
+
+    // resultData puede ser { url, path } o un string
+    const audioUrl = resultData.url || resultData;
+    if (!audioUrl) throw new Error('No se recibió URL de audio');
+
+    const audioRes = await fetch(audioUrl);
+    if (!audioRes.ok) throw new Error('No se pudo descargar el audio');
+    return await audioRes.blob();
   }
 
   // ---- generar un fragmento con reintentos ----
   async function generateChunk(index, maxRetries) {
-    const exaggeration = parseFloat(document.getElementById('exaggeration').value);
-    const temperature = parseFloat(document.getElementById('temperature').value);
-    const seed = parseFloat(document.getElementById('seed').value);
-    const cfgw = parseFloat(document.getElementById('cfgw').value);
     const delay = parseInt(document.getElementById('delay').value);
-
-    const client = await getClient();
+    let audioPath = null;
+    try { audioPath = await uploadRefAudio(); } catch(e) { console.warn('Audio ref no subido:', e.message); }
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      if (shouldStop) return false;
       try {
         if (attempt > 1) {
           setStatus(index, 'processing', `reintento ${attempt}/${maxRetries}…`);
-          await sleep(delay * attempt); // pausa más larga en cada reintento
+          await sleep(delay * 1.5);
         }
-        const params = {
-          text_input: chunks[index],
-          audio_prompt_path_input: refAudioFile || null,
-          exaggeration_input: exaggeration,
-          temperature_input: temperature,
-          seed_num_input: seed,
-          cfgw_input: cfgw,
-          vad_trim_input: false
-        };
-        const result = await client.predict("/generate_tts_audio", params);
-        const audioUrl = result.data[0]?.url || result.data[0];
-        const resp = await fetch(audioUrl);
-        if (!resp.ok) throw new Error('fetch audio failed');
-        const blob = await resp.blob();
+        const blob = await callGradio(chunks[index], audioPath);
         audioBlobs[index] = blob;
-        return true; // éxito
+        return true;
       } catch(e) {
         console.warn(`Fragmento ${index+1} intento ${attempt} falló:`, e.message);
-        if (attempt === maxRetries) return false; // agotó reintentos
+        if (attempt === maxRetries) return false;
       }
     }
     return false;
   }
 
+  // ---- detener ----
+  function stopBatch() {
+    shouldStop = true;
+    document.getElementById('pstatus').textContent = 'Deteniendo… esperando que termine el fragmento actual.';
+    document.getElementById('stop-btn').disabled = true;
+    document.getElementById('stop-btn').textContent = 'Deteniendo…';
+  }
+
   // ---- batch principal ----
-  window.startBatch = async function() {
+  async function startBatch() {
     if (isRunning) return;
     const text = document.getElementById('script-text').value;
     if (!text.trim()) { alert('Pegá el texto del guion primero.'); return; }
@@ -479,31 +542,43 @@
 
     chunks = splitText(text, size, mode);
     audioBlobs = new Array(chunks.length).fill(null);
+    shouldStop = false;
     renderList();
 
     isRunning = true;
     const runBtn = document.getElementById('run-btn');
+    const stopBtn = document.getElementById('stop-btn');
     runBtn.disabled = true;
     document.getElementById('run-spinner').classList.add('visible');
     document.getElementById('run-icon').style.display = 'none';
+    stopBtn.classList.add('visible');
+    stopBtn.disabled = false;
+    stopBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" fill="currentColor"/></svg> Detener';
     document.getElementById('progress-area').classList.add('visible');
     document.getElementById('dl-all-btn').style.display = 'none';
 
-    updateProgress(0, chunks.length, 'Conectando con Chatterbox…');
-    try { await getClient(); } catch(e) {
-      updateProgress(0, chunks.length, '✗ No se pudo conectar. Revisá tu conexión a internet.');
-      isRunning = false; runBtn.disabled = false;
-      document.getElementById('run-spinner').classList.remove('visible');
-      document.getElementById('run-icon').style.display = '';
-      return;
-    }
-
     let doneCount = 0;
+
     for (let i = 0; i < chunks.length; i++) {
+      if (shouldStop) {
+        // marcar restantes como detenidos
+        for (let j = i; j < chunks.length; j++) {
+          setStatus(j, 'stopped', '— detenido');
+        }
+        break;
+      }
+
       setStatus(i, 'processing', 'generando…');
       updateProgress(i, chunks.length, `Fragmento ${i+1} de ${chunks.length}…`);
 
       const ok = await generateChunk(i, maxRetries);
+
+      if (shouldStop && !ok) {
+        setStatus(i, 'stopped', '— detenido');
+        for (let j = i+1; j < chunks.length; j++) setStatus(j, 'stopped', '— detenido');
+        break;
+      }
+
       if (ok) {
         setStatus(i, 'done', '✓ listo');
         document.getElementById('cd-' + i).classList.add('visible');
@@ -515,46 +590,45 @@
         document.getElementById('cd-' + i).classList.remove('visible');
       }
 
-      if (i < chunks.length - 1) await sleep(delay);
+      if (i < chunks.length - 1 && !shouldStop) await sleep(delay);
     }
 
-    updateProgress(chunks.length, chunks.length,
-      `Listo — ${doneCount} de ${chunks.length} audios generados.`);
+    const msg = shouldStop
+      ? `Detenido — ${doneCount} de ${chunks.length} audios generados.`
+      : `Listo — ${doneCount} de ${chunks.length} audios generados.`;
+    updateProgress(chunks.length, chunks.length, msg);
+
     isRunning = false;
+    shouldStop = false;
     runBtn.disabled = false;
     document.getElementById('run-spinner').classList.remove('visible');
     document.getElementById('run-icon').style.display = '';
+    stopBtn.classList.remove('visible');
     if (doneCount > 0) document.getElementById('dl-all-btn').style.display = '';
-  };
+  }
 
   // ---- reintento individual ----
-  window.retrySingle = async function(i) {
+  async function retrySingle(i) {
     if (isRunning) return;
     const maxRetries = parseInt(document.getElementById('retries').value);
     const btn = document.getElementById('cr-' + i);
     btn.disabled = true;
-    btn.textContent = 'reintentando…';
+    btn.textContent = '…';
     setStatus(i, 'processing', 'reintentando…');
-
-    try { await getClient(); } catch(e) {
-      setStatus(i, 'error', '✗ sin conexión');
-      btn.disabled = false; btn.textContent = '↺ reintentar';
-      return;
-    }
+    shouldStop = false;
 
     const ok = await generateChunk(i, maxRetries);
     if (ok) {
       setStatus(i, 'done', '✓ listo');
       document.getElementById('cd-' + i).classList.add('visible');
       btn.classList.remove('visible');
-      // mostrar dl-all si hay al menos uno listo
       if (audioBlobs.some(b => b)) document.getElementById('dl-all-btn').style.display = '';
     } else {
       setStatus(i, 'error', '✗ error');
       btn.disabled = false;
       btn.textContent = '↺ reintentar';
     }
-  };
+  }
 
   // ---- helpers ----
   function setStatus(i, cls, text) {
@@ -574,7 +648,7 @@
 
   function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  window.dlSingle = function(i) {
+  function dlSingle(i) {
     if (!audioBlobs[i]) return;
     const url = URL.createObjectURL(audioBlobs[i]);
     const a = document.createElement('a');
@@ -582,11 +656,11 @@
     a.download = getFileName(i);
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
+  }
 
-  window.downloadAll = function() {
-    audioBlobs.forEach((b, i) => { if (b) setTimeout(() => window.dlSingle(i), i * 300); });
-  };
+  function downloadAll() {
+    audioBlobs.forEach((b, i) => { if (b) setTimeout(() => dlSingle(i), i * 300); });
+  }
 </script>
 </body>
 </html>
